@@ -2,3 +2,6 @@
 .idea
 simpleInterceptor.iml
 *.pyc
+build
+dist
+*.egg*

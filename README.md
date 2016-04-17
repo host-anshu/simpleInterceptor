@@ -2,6 +2,16 @@
 
 It is a simple tool that can be used to intercept methods of classes to apply advices on them.
 
+## Installation
+
+The package is registered with PyPi and can be found [here](https://pypi.python.org/pypi/SimpleInterceptor/0.1.dev1). 
+Though ```pip search SimpleInterceptor``` doesn't return anything, installation has been tested using 
+[TestPyPi](https://testpypi.python.org/pypi). Alternatively, the package can be cloned or downloaded, extracted and 
+following can be run
+
+- *Install* using ```python setup.py install```
+- *Run Tests* using ```python setup.py test```
+
 ## Example
 
 If we were to implement a bank transaction logic, it could be as simple as this.
