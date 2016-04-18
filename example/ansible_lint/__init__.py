@@ -1,0 +1,1 @@
+"""Lint ansible playbook"""

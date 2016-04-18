@@ -34,6 +34,7 @@ setup(
     keywords='interceptor aop',
     packages=find_packages(),
     py_modules=['interceptor'],
+    install_requires=['ansible>=2.0'],
     entry_points={
         'console_scripts': [
             'interceptor=interceptor:intercept',
