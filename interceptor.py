@@ -55,7 +55,7 @@ def intercept(aspects):
                     if not isinstance(advice_impl, (list, tuple, set)):
                         advice_impl = [advice_impl]
                     for impl in advice_impl:
-                        impl(self, extra_arg, *arg, **kw)
+                        impl(self, method, extra_arg, *arg, **kw)
 
                 run_advices('before')
                 run_advices('around_before')
@@ -80,6 +80,8 @@ def intercept(aspects):
         """Decorating class"""
         # TODO: handle staticmethods
         for name, method in inspect.getmembers(cls, inspect.ismethod):
+            if name not in ('__init__',) and name.startswith('__'):
+                continue
             matching_advices = get_matching_advices(name)
             if not matching_advices:
                 continue
