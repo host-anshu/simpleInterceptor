@@ -1,15 +1,17 @@
 """Lint ansible playbook"""
 
-# pylint: disable=W0613
+# pylint: disable=W0603,W0613
 
 import inspect
+from os.path import dirname, join
 import sys
+from collections import OrderedDict
 
 from ansible.cli.playbook import PlaybookCLI  # pylint: disable=E0611,F0401
 from interceptor import intercept
 
 
-ANSIBLE_CLASSES = set()
+ANSIBLE_CLASSES = OrderedDict()  # Add class in the order they are used.
 
 
 def trace_calls(frame, event, arg):
@@ -21,20 +23,14 @@ def trace_calls(frame, event, arg):
     if event != 'call':
         return
     try:
-        _frame = inspect.getframeinfo(frame)
-    except AttributeError:
-        return
-    _func = _frame.function
-    _locals = _func, inspect.getargvalues(frame).locals
-    try:
-        if 'self' not in _locals[1]:
+        _locals = inspect.getargvalues(frame).locals
+        if 'self' not in _locals:
             return
-        _self = _locals[1]['self']
-        _class = _self.__class__
+        _class = _locals['self'].__class__
         _class_repr = repr(_class)
         if 'ansible' not in _class_repr:
             return
-        ANSIBLE_CLASSES.add(_class)
+        ANSIBLE_CLASSES[_class] = True
     except (AttributeError, TypeError):
         pass
 
@@ -46,9 +42,21 @@ def collect_ansible_classes():
     main()
 
 
+INDENTATION, TAB, TARGET_FILE = 0, 4, join(dirname(__file__), 'call_graph_tree.txt')
+
+
 def log_method_name(*arg, **kw):
     """Advice to log method name"""
-    print "Advising", arg[1].__name__
+    global INDENTATION
+    with open(TARGET_FILE, 'a') as fptr:
+        fptr.write(" " * INDENTATION + arg[1].__name__ + '\n')
+        INDENTATION += TAB
+
+
+def dedent(*arg, **kw):
+    """Decrease indentation"""
+    global INDENTATION
+    INDENTATION -= TAB
 
 
 def main():
@@ -64,8 +72,13 @@ def main():
 if __name__ == '__main__':
     collect_ansible_classes()
 
+    # Start from scratch
+    with open(TARGET_FILE, 'w') as fptr:
+        fptr.write('\n')
+
     print "Intercepting classes"
-    ASPECTS = {r'.*': dict(before=log_method_name)}
+    ASPECTS = {r'.*': dict(before=log_method_name, after_finally=dedent)}
+    print "Intercepted classes", ANSIBLE_CLASSES.keys()
     for _class in ANSIBLE_CLASSES:
         intercept(ASPECTS)(_class)
 
