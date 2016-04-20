@@ -91,6 +91,7 @@ class InterceptedTest(CapturePrints):
         self.cook_obj.prepare_curry()
         self.assertEquals(sys.stdout.getvalue().strip(), expected_out)
 
+    @unittest.skip('Feature removed temporarily')
     def test_classmethod(self):
         """Classmethod should work"""
         expected_out = '\n'.join([

@@ -5,3 +5,5 @@ simpleInterceptor.iml
 build
 dist
 *.egg*
+ansible.cfg
+TODO

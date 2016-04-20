@@ -35,7 +35,8 @@ def intercept(aspects):
         for joint_point, advices in aspects.iteritems():
             if re.match(joint_point, name):
                 for advice, impl in advices.items():
-                    if advice in all_advices and joint_point != name:
+                    # Whole word matching regex might have \b around.
+                    if advice in all_advices and joint_point.strip(r'\b') != name:
                         # Give priority to exactly matching method joint-points over wild-card
                         # joint points.
                         continue
@@ -68,10 +69,10 @@ def intercept(aspects):
                     run_advices('after_exc', e)
                     ret = None
                 else:
-                    run_advices('around_after')
-                    run_advices('after_success')
+                    run_advices('around_after', ret)
+                    run_advices('after_success', ret)
                 finally:
-                    run_advices('after_finally')
+                    run_advices('after_finally', ret)
                 return ret
             return trivial
         return decorate
@@ -80,6 +81,9 @@ def intercept(aspects):
         """Decorating class"""
         # TODO: handle staticmethods
         for name, method in inspect.getmembers(cls, inspect.ismethod):
+            if method.__self__ is not None:
+                # TODO: handle classmethods
+                continue
             if name not in ('__init__',) and name.startswith('__'):
                 continue
             matching_advices = get_matching_advices(name)

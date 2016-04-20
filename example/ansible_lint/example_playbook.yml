@@ -1,16 +1,19 @@
 ---
-- hosts: all
-  remote_user: root
-
+- name: Playbook1 with undefined vars
+  hosts: ips
+  become: yes
+  become_method: sudo
+  vars_files:
+    - group_vars/ips
   tasks:
-  - name: ensure apache is at the latest version
-    yum: name=httpd state=latest
+    - name: ensure libraries are latest version
+      apt: name={{ item }} state=latest
+      with_items: libs
 
-- hosts: all
-  remote_user: root
-
+- name: Valid playbook
+  hosts: ips
+  become: yes
+  become_method: sudo
   tasks:
-  - name: ensure postgresql is at the latest version
-    yum: name=postgresql state=latest
-  - name: ensure that postgresql is started
-    service: name=postgresql state=running
+    - name: ensure that postgresql is started
+      service: name=postgresql state=running
