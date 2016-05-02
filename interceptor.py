@@ -68,6 +68,7 @@ def intercept(aspects):
                 except Exception as e:  # pylint: disable=W0703
                     run_advices('after_exc', e)
                     ret = None
+                    raise e
                 else:
                     run_advices('around_after', ret)
                     run_advices('after_success', ret)

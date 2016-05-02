@@ -7,14 +7,14 @@
 import inspect
 from os.path import dirname, join
 import sys
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
 from ansible.cli.playbook import PlaybookCLI  # pylint: disable=E0611,F0401
 from interceptor import intercept
 
 
 ANSIBLE_CLASSES = OrderedDict()  # Add class in the order they are used.
-RESULT = list()
+RESULT = defaultdict(set)
 
 
 def trace_calls(frame, event, arg):
@@ -77,6 +77,24 @@ def print_output(*arg, **kw):
     print "Out for %s of class %s: %s" % (arg[1].__name__, arg[0].__class__.__name__, arg[2])
 
 
+def _exc(*arg, **kw):
+    task = None
+    for stack_trace in inspect.stack():
+        if stack_trace[3] in ('run_advices', 'trivial'):
+            continue
+        _frame = stack_trace[0]
+        _locals = inspect.getargvalues(_frame).locals
+        if 'self' not in _locals:
+            continue
+        if hasattr(_locals['self'], '_task'):
+            task = getattr(_locals['self'], '_task')
+            break
+    if not task:
+        task = 'Couldn\'t establish task for following:'
+    RESULT[task].add(arg[2])
+    print RESULT
+
+
 def collect_undefined_vars(*arg, **kw):
     """Collect undefined vars"""
     # TODO: search for a more appropriate method.
@@ -100,27 +118,71 @@ def main():
 
 
 if __name__ == '__main__':
+    if '--callgraph' in sys.argv:
+        sys.argv.remove('--callgraph')
+        from pycallgraph import Config, GlobbingFilter, PyCallGraph
+        from pycallgraph.output import GraphvizOutput, GephiOutput
+
+        config = Config()
+        config.trace_filter = GlobbingFilter(include='ansible.*')
+        _out = GraphvizOutput()
+        with PyCallGraph(output=_out, config=config):
+        # with PyCallGraph(output=GephiOutput()):
+            main()
+        sys.exit()
+    # saved_stdout = sys.stdout
+    # import os
+    # import sys
+    # f = open(os.devnull, 'w')
+    # sys.stdout = f
     # TODO: Fix the logic to discover classes. Running the playbook now and later again is a
     # bad idea.
     collect_ansible_classes()
-    # from ansible.inventory import Inventory
-    # ANSIBLE_CLASSES[Inventory] = True
+    # from ansible.executor.task_executor import TaskExecutor as IC
+    # from ansible.template import Templar as IC
+    # from ansible.errors import AnsibleUndefinedVariable as IC
+    # ANSIBLE_CLASSES[IC] = True
 
     # Start from scratch
     with open(TARGET_FILE, 'w') as fptr:
         fptr.write('\n')
 
-    print "Intercepting classes", ANSIBLE_CLASSES.keys()
+    # print "Intercepting classes", ANSIBLE_CLASSES.keys()
     ASPECTS = {
-        r'.*': dict(before=log_method_name, after_finally=dedent),
-        r'\bv2_runner_on_failed\b': dict(after_finally=(dedent, collect_undefined_vars)),
+        r'^(?!_process_pending_results$|_read_worker_result$|_wait_on_pending_results$).*':
+            dict(
+                before=log_method_name,
+                # after_exc=store(RESULT)(_exc),
+                # after_exc=_exc,
+                after_finally=dedent
+            ),
+        # r'\bv2_runner_on_failed\b': dict(after_finally=(dedent, collect_undefined_vars)),
     }
+    args_out_funcs = (
+        '_do_template',
+    )
+    for _func in args_out_funcs:
+        ASPECTS[r'\b%s\b' % _func] = dict(
+            # around_before=print_args,
+            after_exc=_exc,
+            after_finally=(
+                dedent,
+                # print_output
+            )
+        )
+
     for _class in ANSIBLE_CLASSES:
         intercept(ASPECTS)(_class)
 
     print "Running after intercepting"
     main()
 
+    # sys.stdout = saved_stdout
+    if not RESULT:
+        print "Valid playbook"
+        sys.exit()
+
     print "Linter Output"
     print "#" * 20
-    print '\n'.join(set(RESULT))
+    for task, errors in RESULT.items():
+        print '{0}{1}{0}{2}{0}'.format('\n', task, '\n'.join(errors))

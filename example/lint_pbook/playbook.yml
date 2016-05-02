@@ -7,8 +7,8 @@
     - group_vars/ips
   tasks:
     - name: ensure libraries are latest version
-      apt: name={{ item }} state=latest
-      with_items: libs
+      apt: name={{ item }} state={{ state }}
+      with_items: "{{ libs }}"
 
 - name: Valid playbook
   hosts: ips
