@@ -9,3 +9,4 @@ ansible.cfg
 TODO
 advanced*
 call_graph_tree.txt
+example/ansible_lint

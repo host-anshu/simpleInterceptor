@@ -82,13 +82,13 @@ class InterceptedTest(CapturePrints):
         self.assertEquals(sys.stdout.getvalue().strip(), "Updated passbook")
 
     def test_multiple_advices(self):
-        """All implementations for the same advice should apply"""
+        """All implementations for the same advice should apply. Exception must be re-raised"""
         expected_out = '\n'.join([
             "Bought grocery",
             "Prepare Ingredients for cooking",
             "Ingredients not ready"
         ])
-        self.cook_obj.prepare_curry()
+        self.assertRaises(Exception, self.cook_obj.prepare_curry)
         self.assertEquals(sys.stdout.getvalue().strip(), expected_out)
 
     @unittest.skip('Feature removed temporarily')
