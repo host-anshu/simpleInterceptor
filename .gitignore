@@ -1,12 +1,17 @@
-# Created by .ignore support plugin (hsz.mobi)
+# IDE
 .idea
 simpleInterceptor.iml
-*.pyc
+
+# Build files
 build
 dist
 *.egg*
-ansible.cfg
-TODO
+
+# Development deps
 advanced*
+ansible.cfg
 call_graph_tree.txt
 example/ansible_lint
+hosts
+*.pyc
+TODO

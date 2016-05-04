@@ -3,19 +3,20 @@
 from setuptools import setup, find_packages
 # To use a consistent encoding
 from codecs import open  # pylint:disable=W0622
-from os import path
+from os.path import abspath, dirname, join
 
-# pylint: disable=C0103
-
-HERE = path.abspath(path.dirname(__file__))
-
-# Get the long description from the README file
-with open(path.join(HERE, 'README.md'), encoding='utf-8') as f:
-    DESCRIPTION = f.read()
+README = join(abspath(dirname(__file__)), 'README.md')
+try:
+    import pypandoc
+    DESCRIPTION = pypandoc.convert(README, 'rst')
+except(IOError, ImportError):
+    # Get the long description from the README file
+    with open(README, encoding='utf-8') as fptr:
+        DESCRIPTION = fptr.read()
 
 setup(
     name='SimpleInterceptor',
-    version='0.1.dev1',
+    version='0.1',
     description='Simple interceptor related to concepts of AOP',
     long_description=DESCRIPTION,
     url='https://github.com/host-anshu/simpleInterceptor',
