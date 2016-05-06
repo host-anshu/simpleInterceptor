@@ -10,8 +10,9 @@ dist
 # Development deps
 advanced*
 ansible.cfg
+full.txt
+limited.txt
 call_graph_tree.txt
-example/ansible_lint
 hosts
 *.pyc
 TODO

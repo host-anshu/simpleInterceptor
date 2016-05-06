@@ -32,7 +32,7 @@ setup(
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
     ],
-    keywords='interceptor aop',
+    keywords='python interceptor aop call graph tree',
     packages=find_packages(),
     py_modules=['interceptor'],
     install_requires=['ansible>=2.0'],

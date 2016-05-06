@@ -1,0 +1,8 @@
+                              ansible.cli.__init__:  69: >__init__
+                              ansible.cli.__init__:  78: <__init__
+                              ansible.cli.playbook:  49: >parse
+                              ansible.cli.__init__: 183: | >validate_conflicts
+                              ansible.cli.__init__: 206: | <validate_conflicts
+                              ansible.cli.playbook:  85: <parse
+                              ansible.cli.playbook:  87: >run
+                              ansible.cli.playbook: 205: <run

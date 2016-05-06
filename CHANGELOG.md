@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 
 
+### [Unreleased]
+
+#### Added
+- Example to use interceptor to generate call graph of ansible-playbook.
+
+#### Removed
+- `pycallgraph.png` that was increasing the size of package.
+
+
 ### [0.1] - 2016-05-04
 
 #### Added
